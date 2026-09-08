@@ -4,30 +4,15 @@ Search on openchoreo.dev is Algolia DocSearch (app `B8ST9KVWVJ`, index `openchor
 wired up in `docusaurus.config.ts` under `themeConfig.docsearch`. The index is built by
 the Algolia Crawler, and its **settings live in the Algolia dashboard, not in this repo**.
 
-`algolia-index-settings.json` is the version-controlled record of what those settings are
-supposed to be, so the config is reviewable and restorable instead of existing only in a UI.
+This file explains *why* the current settings look the way they do. It deliberately does
+not duplicate their values — nothing here is applied automatically, so a copy would drift
+out of date silently. The settings themselves live in two places that must agree:
 
-## Applying / restoring
+- **Index → Configuration** in the Algolia dashboard (takes effect immediately)
+- the crawler's `initialIndexSettings["openchoreo"]` at crawler.algolia.com
 
-The dashboard keeps no settings history. To restore the intended state:
-
-```sh
-curl -X PUT "https://B8ST9KVWVJ.algolia.net/1/indexes/openchoreo/settings" \
-  -H "X-Algolia-API-Key: $ALGOLIA_ADMIN_KEY" \
-  -H "X-Algolia-Application-Id: B8ST9KVWVJ" \
-  -H "Content-Type: application/json" \
-  --data @scripts/algolia-index-settings.json
-```
-
-Or edit the same values via **Index → Configuration** in the dashboard. Settings changes
-are instant and need no re-crawl.
-
-## Keep the Crawler in sync
-
-The Crawler re-applies its own `initialIndexSettings` on every **full reindex**. If this
-file and the crawler config disagree, a reindex silently reverts the index to whatever the
-crawler holds. When changing settings here, mirror them into
-`initialIndexSettings["openchoreo"]` at crawler.algolia.com.
+The crawler re-applies `initialIndexSettings` on every **full reindex**, so if the two
+disagree, a reindex silently reverts the index to whatever the crawler holds. Change both.
 
 ## Why the settings look like this
 
@@ -85,25 +70,4 @@ asserts both properties. Run it after any settings or crawler change:
 ```sh
 npm run test:search
 npm run test:search -- --index some_scratch_index
-```
-
-## Rollback
-
-Pre-change settings, if the current config ever needs reverting:
-
-```json
-{
-  "searchableAttributes": [
-    "unordered(hierarchy.lvl0)",
-    "unordered(hierarchy.lvl1)",
-    "unordered(hierarchy.lvl2)",
-    "unordered(hierarchy.lvl3)",
-    "unordered(hierarchy.lvl4)",
-    "unordered(hierarchy.lvl5)",
-    "unordered(hierarchy.lvl6)",
-    "content"
-  ],
-  "attributeForDistinct": "url",
-  "distinct": true
-}
 ```
